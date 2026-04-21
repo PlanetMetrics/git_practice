@@ -1,0 +1,32 @@
+---
+title: "practice_water"
+format: pdf
+editor: visual
+---
+
+
+```{r}
+library(here)
+library(tidyverse)
+# read in the data
+p301 = read.csv(here("week1/data", "p301.csv"))
+
+# aggregate by water year
+p301_yearly <- p301 %>%
+  group_by(wy) %>%
+  summarise(total_streamflow = sum(streamflow),
+            total_precip = sum(precip),
+            percent_streamflow = (total_streamflow / total_precip) * 100)
+
+# calculate mean, range and standard deviation of percent streamflow across year
+mean(p301_yearly$percent_streamflow)
+```
+
+```{r}
+range(p301_yearly$percent_streamflow)
+```
+
+```{r}
+sd(p301_yearly$percent_streamflow)
+```
+

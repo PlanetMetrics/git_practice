@@ -1,0 +1,358 @@
+---
+title: "ESM262_A1_WLIEN"
+author: "WLIEN"
+format: pdf
+editor: visual
+---
+
+# FUNDAMENTAL
+
+## Quarto
+
+```{r}
+#| echo: false
+```
+
+## LOAD PACKAGES
+
+```{r}
+library(tidyverse)
+library(broom)
+library(gt)
+library(purrr)
+```
+
+## LOAD DATA
+
+```{r}
+df <- read_csv("p301.csv")
+```
+
+## CLEANING: Categorical
+
+```{r}
+df <- df %>%
+  drop_na() %>%
+  mutate(
+    month = factor(month),
+    year = factor(year),
+    season = case_when(
+      month %in% c("12", "1", "2") ~ "Winter",
+      month %in% c("3", "4", "5") ~ "Spring",
+      month %in% c("6", "7", "8") ~ "Summer",
+      month %in% c("9", "10", "11") ~ "Fall"
+    ),
+    season = factor(season, levels = c("Winter", "Spring", "Summer", "Fall"))
+  )
+```
+
+# ANALYSIS ONE: WHAT AFFECTS EVAPORATIONS
+
+## Motivation
+
+This analysis explores how evaporation is related to solar radiation (direct and diffuse) ,season and percipitation and year. The goal of the analysis is to find a statistical model with explanatory power.
+
+## Exploratory Visualization
+
+```{r}
+# Evaporation distribution
+ggplot(df, aes(x = evaporation)) +
+  geom_histogram(bins = 50) +
+  theme_minimal()
+
+# Evaporation vs Direct Solar
+ggplot(df, aes(x = direct_solar, y = evaporation, color = month)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  theme_minimal()
+
+# Evaporation vs Diffuse Solar
+ggplot(df, aes(x = diffuse_solar, y = evaporation, color = month)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  theme_minimal()
+
+# Seasonality
+ggplot(df, aes(x = month, y = evaporation)) +
+  geom_boxplot() +
+  theme_minimal()
+
+# Facet by month (seasonal structure)
+ggplot(df, aes(x = direct_solar, y = evaporation)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~ month) +
+  theme_minimal()
+
+# Evaporation vs precipitation
+ggplot(df, aes(x = precip, y = evaporation, color = month)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  theme_minimal()
+```
+
+The boxplot "evaporation and month" suggests potential strong seasonal variation in evaporation, with noticeably outliers from December to May. This indicates that month is an important explanatory factor.
+
+## MODEL SPECIFICATION
+
+```{r}
+lm1 <- lm(evaporation ~ direct_solar, data = df)
+
+lm2 <- lm(evaporation ~ direct_solar + diffuse_solar, data = df)
+
+lm3 <- lm(evaporation ~ direct_solar + month, data = df)
+
+lm4 <- lm(evaporation ~ direct_solar +  year, data = df)
+
+lm5 <- lm(evaporation ~ direct_solar +  precip, data = df)
+
+lm6 <- lm(evaporation ~ direct_solar*month + year + precip, data = df)
+
+lm7 <- lm(evaporation ~ direct_solar + month + year + precip, data = df)
+
+lm8 <- lm(evaporation ~ direct_solar + month*precip + year , data = df)
+
+```
+
+## MODEL SUMMARY
+
+```{r}
+model_list <- list(lm1, lm2, lm3, lm4, lm5, lm6, lm7, lm8)
+
+model_names <- c(
+  "M1 Solar",
+  "M2 Solar + Diffuse",
+  "M3 + Month",
+  "M4 + Year",
+  "M5 + Precip",
+  "M6 Full",
+  "M7 Full2", 
+  "M8 Full3"
+  
+)
+
+model_summary <- map2_dfr(model_list, model_names, ~{
+  glance(.x) %>%
+    mutate(model = .y) %>%
+    select(model, r.squared, adj.r.squared, AIC)
+})
+
+model_summary %>%
+  gt()
+```
+
+## STANDARDISED COEFFICIENT PLOT
+
+```{r}
+df_std <- df %>%
+  mutate(
+    evaporation   = scale(evaporation)[,1],
+    direct_solar  = scale(direct_solar)[,1],
+    diffuse_solar = scale(diffuse_solar)[,1],
+    precip        = scale(precip)[,1]
+  )
+
+model_list_std <- list(
+  lm(evaporation ~ direct_solar, data = df_std),                                  # M1
+  lm(evaporation ~ direct_solar + diffuse_solar, data = df_std),                  # M2
+  lm(evaporation ~ direct_solar + month, data = df_std),                          # M3
+  lm(evaporation ~ direct_solar + year, data = df_std),                           # M4
+  lm(evaporation ~ direct_solar + precip, data = df_std),                         # M5
+  lm(evaporation ~ direct_solar * month + year + precip, data = df_std),          # M6
+  lm(evaporation ~ direct_solar + month + year + precip, data = df_std),          # M7
+  lm(evaporation ~ direct_solar + month * precip + year, data = df_std)           # M8
+)
+
+model_names_std <- c(
+  "M1 Solar (std)",
+  "M2 Solar + Diffuse (std)",
+  "M3 + Month (std)",
+  "M4 + Year (std)",
+  "M5 + Precip (std)",
+  "M6 Solar×Month (std)",
+  "M7 Full No Int. (std)",
+  "M8 Month×Precip (std)"
+)
+
+coef_df_std <- map2_dfr(model_list_std, model_names_std, ~{
+  tidy(.x) %>%
+    mutate(model = .y)
+})
+
+coef_df_std_filtered <- coef_df_std %>%
+  filter(term %in% c("direct_solar", "diffuse_solar", "precip"))
+
+ggplot(coef_df_std_filtered, aes(x = estimate, y = term, color = model)) +
+  geom_point(position = position_dodge(width = 0.6)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  theme_minimal()
+
+
+library(stringr)
+
+coef_df_std_interactions <- coef_df_std %>%
+  filter(
+    str_detect(term, "direct_solar|diffuse_solar|precip")
+  )
+
+ggplot(coef_df_std_interactions, aes(x = estimate, y = term, color = model)) +
+  geom_point(position = position_dodge(width = 0.6), alpha = 0.8) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  theme_minimal()
+```
+
+## INTERPRETATION of THE MODEL
+
+Model 1 shows that direct solar radiation alone explains only a small share of the variation in evaporation. Model 2 adds diffuse solar radiation, but the improvement is very limited, suggesting that diffuse solar contributes little additional explanatory power beyond direct solar.
+
+Adding temporal structure improves model performance. In particular, including month substantially increases adjusted R-squared and lowers AIC, which is consistent with the clear seasonal pattern shown in the exploratory plots. Year also improves the model, but less strongly than month, indicating that intra-annual seasonality is more important than inter-annual variation in explaining evaporation.
+
+Precipitation provides some additional explanatory power. However, its effect appears to vary across months, as suggested by the precipitation plot. For that reason, Model 8 includes an interaction between month and precipitation to allow for seasonal heterogeneity in the precipitation–evaporation relationship.
+
+Model performance improves substantially when interaction terms are introduced.
+
+Model 6 allows the effect of direct solar radiation to vary across months by including a direct_solar × month interaction. This model achieves the highest adjusted R-squared and the lowest AIC among all specifications, indicating the best overall fit.
+
+Comparing Model 6 with Model 7 shows that allowing seasonal variation in the solar effect significantly improves explanatory power. This suggests that the relationship between solar radiation and evaporation is not constant throughout the year, but instead depends on seasonal conditions such as temperature, humidity, and background climate regimes.
+
+In contrast, Model 8 introduces an interaction between month and precipitation. While this also improves model performance relative to non-interaction specifications, it does not outperform Model 6. This indicates that seasonal variation in solar radiation plays a more important role than seasonal variation in precipitation in explaining evaporation.
+
+Overall, the results suggest that evaporation is strongly driven by seasonal dynamics, and that the effect of solar radiation is modulated by month rather than being constant over time. This highlights the importance of allowing for heterogeneous effects when modelling climate–hydrological relationships, rather than relying on a single average slope.
+
+# ANALYSIS TWO : PLANT CARBON
+
+## MOTIVATION
+
+This analysis examines the dynamic relationship between ecosystem productivity and carbon storage. Plant carbon is treated as a stock variable, while NPP is treated as a flow variable. Because plant carbon accumulates over time, current plant carbon is expected to depend on both its previous level and previous productivity.
+
+To better capture this monthly lagged process, this analysis introduces dynamic model specifications using one-period lagged variables after ordering the data by year and month.
+
+## DATA PROCESSING
+
+```{r}
+df_carb <- df %>%
+  mutate(
+    year = as.numeric(as.character(year)),
+    month = as.numeric(as.character(month))
+  ) %>%
+  arrange(year, month) %>%
+  mutate(
+    time_id = row_number(),
+    year_month = year + (month - 1) / 12,
+    npp_lag1 = lag(NPP, 1),
+    plant_carbon_lag1 = lag(plant_carbon, 1)
+  )
+
+df_carb_clean <- df_carb %>%
+  drop_na(npp_lag1, plant_carbon_lag1)
+```
+
+## MOEDL SPECIFICATION
+
+```{r}
+pc1 <- lm(plant_carbon ~ npp_lag1, data = df_carb_clean)
+
+pc2 <- lm(plant_carbon ~ plant_carbon_lag1 + npp_lag1, data = df_carb_clean)
+
+pc3 <- lm(plant_carbon ~ plant_carbon_lag1 + npp_lag1 + precip + direct_solar, data = df_carb_clean)
+
+pc4 <- lm(plant_carbon ~ plant_carbon_lag1 + npp_lag1 + precip + direct_solar + factor(month), 
+          data = df_carb_clean)
+```
+
+## PLOTTING
+
+```{r}
+pc_model_list <- list(pc1, pc2, pc3, pc4)
+
+pc_model_names <- c(
+  "PC1 Lagged NPP",
+  "PC2 Lagged Carbon + NPP",
+  "PC3 Full Dynamic",
+  "PC4 Full Dynamic + Month"
+)
+
+pc_model_summary <- map2_dfr(pc_model_list, pc_model_names, ~{
+  glance(.x) %>%
+    mutate(model = .y) %>%
+    select(model, r.squared, adj.r.squared, AIC)
+})
+
+pc_model_summary %>%
+  gt()
+```
+
+## MODEL LOGIC
+
+To better capture the dynamic relationship between ecosystem productivity and carbon storage, a lagged specification is introduced.
+
+Plant carbon is a stock variable that accumulates over time, while NPP represents the monthly flow of carbon into the system. Therefore, current plant carbon is expected to depend on past carbon levels as well as previous productivity.
+
+The core dynamic model can be written as:
+
+PlantCarbon_t = α + β₁ PlantCarbon\_{t-1} + β₂ NPP\_{t-1} + ε
+
+The extended specification further includes climate variables and month effects to account for seasonal structure in plant carbon dynamics.
+
+## FITTED VALUE PLOT
+
+```{r}
+df_carb_fit <- df_carb_clean %>%
+  mutate(
+    fitted_pc1 = fitted(pc1),
+    fitted_pc2 = fitted(pc2),
+    fitted_pc3 = fitted(pc3),
+    fitted_pc4 = fitted(pc4)
+  )
+
+ggplot(df_carb_fit, aes(x = year_month)) +
+  geom_line(aes(y = plant_carbon, color = "Actual")) +
+  geom_line(aes(y = fitted_pc1, color = "PC1 Fitted")) +
+  geom_line(aes(y = fitted_pc2, color = "PC2 Fitted")) +
+  geom_line(aes(y = fitted_pc3, color = "PC3 Fitted")) +
+  geom_line(aes(y = fitted_pc4, color = "PC4 Fitted")) +
+  scale_x_continuous(
+    breaks = seq(floor(min(df_carb_fit$year)), ceiling(max(df_carb_fit$year)), by = 5)
+  ) +
+  labs(x = "Year", y = "Plant Carbon", color = "Series") +
+  theme_minimal()
+```
+
+## CHANGE PLOT
+
+```{r}
+df_carb_fit <- df_carb_fit %>%
+  mutate(
+    d_carbon = plant_carbon - plant_carbon_lag1,
+    d_fitted_pc3 = fitted_pc3 - plant_carbon_lag1,
+    d_fitted_pc4 = fitted_pc4 - plant_carbon_lag1
+  )
+
+ggplot(df_carb_fit, aes(x = year_month)) +
+  geom_line(aes(y = d_carbon), 
+            color = "grey", size = 1) +
+  
+  geom_line(aes(y = d_fitted_pc3), 
+            color = "blue", alpha = 0.5, size = 0.1) +
+  
+  geom_line(aes(y = d_fitted_pc4), 
+            color = "red", alpha = 0.5, size = 0.1) +
+  
+  scale_x_continuous(
+    breaks = seq(floor(min(df_carb_fit$year)), 
+                 ceiling(max(df_carb_fit$year)), 
+                 by = 5)
+  ) +
+  
+  labs(
+    x = "Year",
+    y = "Monthly Change in Plant Carbon"
+  ) +
+  
+  theme_minimal()
+
+ggplot(df_carb_fit, aes(x = factor(month), y = d_carbon)) +
+  geom_boxplot() +
+  labs(x = "Month", y = "Monthly Change in Plant Carbon") +
+  theme_minimal()
+```
