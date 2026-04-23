@@ -10,3 +10,9 @@ editor: visual
 #
 hello
 ```
+
+# trying to practice here with a mistake 
+
+here is the mistate : ""
+
+practicing with REVERT
