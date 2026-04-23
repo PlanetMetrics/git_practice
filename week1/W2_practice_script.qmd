@@ -3,12 +3,12 @@ title: "W2_gitpractice"
 format: html
 editor: visual
 ---
+
 ---
 title: "practice_water"
 format: pdf
 editor: visual
 ---
-
 
 ```{r}
 library(here)
@@ -34,4 +34,3 @@ range(p301_yearly$percent_streamflow)
 ```{r}
 sd(p301_yearly$percent_streamflow)
 ```
-
