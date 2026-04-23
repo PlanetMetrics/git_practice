@@ -10,11 +10,3 @@ editor: visual
 #
 hello
 ```
-
-have a little mistake
-
-# in Terminal 
-
-git revert HEAD
-
-git revert HEAD helps you jump back to the previous commit
