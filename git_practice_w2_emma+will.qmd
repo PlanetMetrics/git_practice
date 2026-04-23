@@ -1,0 +1,45 @@
+---
+title: "Git Practice with Quarto"
+format: html
+execute:
+  echo: true
+---
+
+# Git Practice Playground
+
+This file is for practicing Git commands with small visible changes.
+
+## 1. Hello world
+
+```{r}
+print("Hello, world!")
+```
+
+```{r}
+print("Git is tracking this file.")
+print("Quarto + R = reproducible workflow.")
+```
+
+```{r}
+x <- 5
+y <- 7
+print(paste("x + y =", x + y))
+```
+
+```{r}
+cat("
+  /\\_/\\
+ ( o.o )
+  > ^ <
+")
+```
+
+
+```{r}
+#install.packages("praise")
+#install.packages("cowsay")
+#install.packages("beepr")
+library(praise)
+library(cowsay)
+library(beepr)
+say("All done making some beautiful tables! :) ", "whale"); beep(3)  ```
