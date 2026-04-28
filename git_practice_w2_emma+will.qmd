@@ -14,8 +14,14 @@ This file is for practicing Git commands with small visible changes.
 ```{r}
 print("Hello, world!")
 print("TEST CONFLICT")
+<<<<<<< HEAD
 #OREGON STATE
 
+=======
+
+1 + 1 
+2 + 2 
+>>>>>>> f03aee0752e264591965c88543a6b84bc985d647
 ```
 
 ```{r}
