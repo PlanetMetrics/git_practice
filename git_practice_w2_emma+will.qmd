@@ -15,6 +15,7 @@ This file is for practicing Git commands with small visible changes.
 print("Hello, world!")
 print("TEST CONFLICT")
 #OREGON STATE
+
 ```
 
 ```{r}
@@ -23,7 +24,7 @@ print("Quarto + R = reproducible workflow.")
 ```
 
 ```{r}
-x <- 5
+x <- 50000000000000000000000000000000
 y <- 7
 print(paste("x + y =", x + y))
 ```
