@@ -13,6 +13,7 @@ This file is for practicing Git commands with small visible changes.
 
 ```{r}
 print("Hello, world!")
+print("TEST CONFLICT")
 ```
 
 ```{r}
