@@ -13,8 +13,6 @@ hello
 
 # trying to practice here with a mistake
 
-practice push - emma
-
 here is the mistate : ""
 
 practicing with REVERT
