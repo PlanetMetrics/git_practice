@@ -15,6 +15,7 @@ This file is for practicing Git commands with small visible changes.
 print("Hello, world!")
 print("TEST CONFLICT")
 # Updated to branch main repo to my own version testing 
+# not updating into git account
 1 + 1 
 2 + 2 
 
