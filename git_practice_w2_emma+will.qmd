@@ -5,6 +5,14 @@ execute:
   echo: true
 ---
 
+# GIT DOCUMENTATION NOTE
+```{r}
+browseURL("https://www.geeksforgeeks.org")
+browseURL("https://www.git-scm.com")
+```
+
+
+
 # Git Practice Playground
 
 This file is for practicing Git commands with small visible changes.
@@ -38,12 +46,11 @@ cat("
 ")
 ```
 
-
 ```{r}
-#install.packages("praise")
-#install.packages("cowsay")
-#install.packages("beepr")
-library(praise)
-library(cowsay)
-library(beepr)
-say("All done making some beautiful tables! :) ", "whale"); beep(3)  ```
+ #install.packages("praise") 
+#install.packages("cowsay") 
+#install.packages("beepr") 
+library(praise) library(cowsay) library(beepr) 
+say("All done making some beautiful tables! :) ", "whale"); beep(3)
+```
+
