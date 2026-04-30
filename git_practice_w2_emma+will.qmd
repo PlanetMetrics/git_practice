@@ -54,12 +54,12 @@ cat("
 ```
 
 ```{r}
- #install.packages("praise") 
+#install.packages("praise") 
 #install.packages("cowsay") 
 #install.packages("beepr") 
 library(praise)
 library(cowsay) 
 library(beepr) 
-say("We merged branches whooo! :) ", "whale"); beep(3)
+say("We merged branches whooo! :) ", "duck"); beep(3)
 ```
 
