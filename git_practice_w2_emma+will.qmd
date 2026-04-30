@@ -25,6 +25,7 @@ print("TEST CONFLICT")
 
 1 + 1 
 2 + 2 
+
 ```
 
 ```{r}
@@ -33,7 +34,7 @@ print("Quarto + R = reproducible workflow.")
 ```
 
 ```{r}
-x <- 5
+x <- 50000000000000000000000000000000
 y <- 7
 print(paste("x + y =", x + y))
 ```
