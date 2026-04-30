@@ -57,7 +57,9 @@ cat("
  #install.packages("praise") 
 #install.packages("cowsay") 
 #install.packages("beepr") 
-library(praise) library(cowsay) library(beepr) 
-say("All done making some beautiful tables! :) ", "whale"); beep(3)
+library(praise)
+library(cowsay) 
+library(beepr) 
+say("We merged branches whooo! :) ", "whale"); beep(3)
 ```
 
