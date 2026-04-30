@@ -18,6 +18,7 @@ print("TEST CONFLICT")
 # not updating into git account
 1 + 1 
 2 + 2 
+3 + 3 
 
 ```
 
